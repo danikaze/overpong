@@ -1,0 +1,19 @@
+{
+  "watch": [
+    "server",
+    "build-time-constants",
+    "build-tools",
+    "logger.config.js",
+    "tsconfig.json",
+    "public/static/locales",
+    "next.config.js",
+    "next-18next.config.js",
+    "nodemon.json"
+  ],
+  "ignore": ["build-time-constants/build.d.ts"],
+  "exec": "ts-node --project server/tsconfig.json -r tsconfig-paths/register --files server/index.ts",
+  "ext": "js ts",
+  "env": {
+    "NODE_OPTIONS": "--inspect"
+  }
+}

@@ -1,0 +1,65 @@
+.root {
+  position: relative;
+  background: rgb(37, 37, 37);
+  width: 900px;
+  height: 600px;
+}
+
+.wall {
+  position: absolute;
+  height: 15px;
+  width: 100%;
+  background: white;
+
+  &.top {
+    top: 0;
+  }
+  &.bottom {
+    bottom: 0;
+  }
+}
+
+.middleLine {
+  margin: auto;
+  height: 100%;
+  width: 15px;
+  background: rgb(114, 114, 114);
+}
+
+.score {
+  width: 50%;
+  text-align: center;
+  font-size: 72px;
+  color: #727272;
+  position: absolute;
+  font-weight: bolder;
+  top: 30px;
+
+  &.p1 {
+    left: 0;
+  }
+  &.p2 {
+    right: 0;
+  }
+}
+
+.racket {
+  position: absolute;
+  background: white;
+  height: 100px;
+  width: 15px;
+
+  &.p1 {
+    left: 50px;
+  }
+  &.p2 {
+    right: 50px;
+  }
+}
+
+.ball {
+  position: absolute;
+  background: white;
+  height: 15px;
+  width: 15px;
+}

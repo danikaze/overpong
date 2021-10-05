@@ -1,5 +1,9 @@
 {
-  "name": "nextjs-boilerplate",
+  "name": "overpong",
+  "description": "The world could use more pongers",
+  "keywords": [
+    "cheers love, the rackets are here"
+  ],
   "version": "0.1.0",
   "private": true,
   "scripts": {

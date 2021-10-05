@@ -24,6 +24,7 @@ export interface BallState {
   h: number;
   sx: number;
   sy: number;
+  angleRad: number;
   onUpdate: BallUpdateCallback;
 }
 

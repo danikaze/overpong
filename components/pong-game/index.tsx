@@ -23,8 +23,8 @@ export const PongGame: FC<Props> = () => {
 function renderWalls(): ReactNode {
   return (
     <>
-      <div className={clsx(styles.wall, styles.top)}></div>
-      <div className={clsx(styles.wall, styles.bottom)}></div>
+      <div className={clsx(styles.wall, styles.top)} />
+      <div className={clsx(styles.wall, styles.bottom)} />
     </>
   );
 }

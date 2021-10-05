@@ -1,6 +1,6 @@
+import { getSpeed } from '@utils/math';
+import { random } from '@utils/random';
 import {
-  BallState,
-  BallUpdateCallback,
   GameState,
   PlayerState,
   PongGameData,
@@ -12,9 +12,12 @@ export class PongGame {
   protected static readonly FIELD_WIDTH = 900;
   protected static readonly FIELD_HEIGHT = 600;
   protected static readonly RACKET_SIZE = { w: 15, h: 100 };
+  protected static readonly RACKET_DISTANCE_FROM_WALL = 50;
   protected static readonly BALL_SIZE = { w: 15, h: 15 };
 
-  protected static readonly BALL_SPEED = 300;
+  protected static readonly NORMAL_OFFSET = 50;
+
+  protected static readonly BALL_SPEED = 200;
   protected static readonly RACKET_SPEED = 500;
 
   protected state: GameState;
@@ -31,17 +34,18 @@ export class PongGame {
     this.kbEventHandler = this.kbEventHandler.bind(this);
     this.update = this.update.bind(this);
 
+    const ballAngle = random(-Math.PI, Math.PI);
     this.state = {
       ball: {
         x: BALL_INITIAL_X,
         y: BALL_INITIAL_Y,
         ...PongGame.BALL_SIZE,
-        sx: Math.sign(Math.random() - 0.5) * PongGame.BALL_SPEED,
-        sy: Math.sign(Math.random() - 0.5) * PongGame.BALL_SPEED,
+        angleRad: ballAngle,
+        ...getSpeed(PongGame.BALL_SPEED, ballAngle),
         onUpdate: data.onBallUpdate,
       },
       player1: {
-        x: 50,
+        x: PongGame.RACKET_DISTANCE_FROM_WALL,
         y: RACKET_INITIAL_Y,
         ...PongGame.RACKET_SIZE,
         score: 0,
@@ -52,7 +56,10 @@ export class PongGame {
         onUpdate: data.onRacket1Update,
       },
       player2: {
-        x: PongGame.FIELD_WIDTH - 50 - PongGame.RACKET_SIZE.w,
+        x:
+          PongGame.FIELD_WIDTH -
+          PongGame.RACKET_DISTANCE_FROM_WALL -
+          PongGame.RACKET_SIZE.w,
         y: RACKET_INITIAL_Y,
         ...PongGame.RACKET_SIZE,
         score: 0,
@@ -102,7 +109,6 @@ export class PongGame {
     }
 
     this.isKeyPressed[keyCode] = ev.type === 'keydown';
-    console.log(ev.code, ev.type, this.isKeyPressed);
   }
 
   protected updateRacket(delta: number, player: PlayerState): void {
@@ -132,19 +138,42 @@ export class PongGame {
     ball.x = Math.max(MIN_X, Math.min(ball.x + dx, MAX_X));
     ball.y = Math.max(MIN_Y, Math.min(ball.y + dy, MAX_Y));
 
+    // ball colliding with the walls
     if (ball.y <= MIN_Y || ball.y >= MAX_Y) {
-      ball.sy *= -1;
+      ball.angleRad *= -1;
+      const speed = getSpeed(PongGame.BALL_SPEED, ball.angleRad);
+      ball.sx = speed.sx;
+      ball.sy = speed.sy;
     }
 
-    if (
-      this.isBallColliding(this.state.player1) ||
-      this.isBallColliding(this.state.player2)
-    ) {
-      ball.sx *= -1;
+    const player1 = this.state.player1;
+    const player2 = this.state.player2;
+    // collision with racket 1
+    if (this.isBallColliding(player1)) {
+      // const ballCenterY = ball.y + ball.h / 2;
+      // const collidingRatio = 2 * ((ball.y - player1.y) / player1.h - 0.5);
+
+      ball.angleRad =
+        ball.angleRad > 0 ? -ball.angleRad + Math.PI : -ball.angleRad - Math.PI;
+      const speed = getSpeed(PongGame.BALL_SPEED, ball.angleRad);
+      ball.sx = speed.sx;
+      ball.sy = speed.sy;
+
+      // collision with racket 2
+    } else if (this.isBallColliding(player2)) {
+      ball.angleRad =
+        ball.angleRad > 0 ? Math.PI - ball.angleRad : -Math.PI - ball.angleRad;
+      const speed = getSpeed(PongGame.BALL_SPEED, ball.angleRad);
+      ball.sx = speed.sx;
+      ball.sy = speed.sy;
+
+      // player2 goal
     } else if (ball.x <= MIN_X) {
-      this.goal(this.state.player2);
+      this.goal(player2);
+
+      // player1 goal
     } else if (ball.x >= MAX_X) {
-      this.goal(this.state.player1);
+      this.goal(player1);
     }
 
     ball.onUpdate(ball.x, ball.y);
@@ -163,8 +192,10 @@ export class PongGame {
 
     ball.x = BALL_INITIAL_X;
     ball.y = BALL_INITIAL_Y;
-    ball.sx = Math.sign(Math.random() - 0.5) * PongGame.BALL_SPEED;
-    ball.sy = Math.sign(Math.random() - 0.5) * PongGame.BALL_SPEED;
+    ball.angleRad = random(-Math.PI, Math.PI);
+    const speed = getSpeed(PongGame.BALL_SPEED, ball.angleRad);
+    ball.sx = speed.sx;
+    ball.sy = speed.sy;
   }
 
   protected isBallColliding(player: PlayerState): boolean {

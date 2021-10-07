@@ -19,3 +19,9 @@ export function deg2rad(degrees: number): number {
   // tslint:disable:no-magic-numbers
   return (degrees * Math.PI) / 180;
 }
+
+// Vr = Vi - 2(Vi.N)*N
+
+// Vi = direction vector of ball at impact
+// Vr = relection vector
+// N = normal of surface ball hit

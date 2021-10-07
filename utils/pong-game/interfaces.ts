@@ -1,3 +1,5 @@
+import { Vector2D } from '@utils/vector-2d';
+
 export type RacketUpdateCallback = (y: number) => void;
 export type ScoreUpdateCallback = (p1score: number, p2score: number) => void;
 export type BallUpdateCallback = (x: number, y: number) => void;
@@ -22,9 +24,7 @@ export interface BallState {
   y: number;
   w: number;
   h: number;
-  sx: number;
-  sy: number;
-  angleRad: number;
+  speed: Vector2D;
   onUpdate: BallUpdateCallback;
 }
 

@@ -1,5 +1,6 @@
 import { getSpeed } from '@utils/math';
 import { random } from '@utils/random';
+import { Vector2D } from '@utils/vector-2d';
 import {
   GameState,
   PlayerState,
@@ -15,7 +16,9 @@ export class PongGame {
   protected static readonly RACKET_DISTANCE_FROM_WALL = 50;
   protected static readonly BALL_SIZE = { w: 15, h: 15 };
 
-  protected static readonly NORMAL_OFFSET = 50;
+  protected static readonly NORMAL_OFFSET = 80;
+  protected static readonly HORIZONTAL_SURFACE = new Vector2D(1, 0);
+  protected static readonly VERTICAL_SURFACE = new Vector2D(0, 1);
 
   protected static readonly BALL_SPEED = 200;
   protected static readonly RACKET_SPEED = 500;
@@ -35,13 +38,13 @@ export class PongGame {
     this.update = this.update.bind(this);
 
     const ballAngle = random(-Math.PI, Math.PI);
+    const ballSpeed = getSpeed(PongGame.BALL_SPEED, ballAngle);
     this.state = {
       ball: {
         x: BALL_INITIAL_X,
         y: BALL_INITIAL_Y,
         ...PongGame.BALL_SIZE,
-        angleRad: ballAngle,
-        ...getSpeed(PongGame.BALL_SPEED, ballAngle),
+        speed: new Vector2D(ballSpeed.sx, ballSpeed.sy),
         onUpdate: data.onBallUpdate,
       },
       player1: {
@@ -133,39 +136,36 @@ export class PongGame {
     const MIN_Y = PongGame.WALL_SIZE;
     const MAX_Y = PongGame.FIELD_HEIGHT - PongGame.WALL_SIZE - ball.h;
 
-    const dx = (delta * ball.sx) / 1000;
-    const dy = (delta * ball.sy) / 1000;
+    const dx = (delta * ball.speed.x) / 1000;
+    const dy = (delta * ball.speed.y) / 1000;
     ball.x = Math.max(MIN_X, Math.min(ball.x + dx, MAX_X));
     ball.y = Math.max(MIN_Y, Math.min(ball.y + dy, MAX_Y));
 
     // ball colliding with the walls
     if (ball.y <= MIN_Y || ball.y >= MAX_Y) {
-      ball.angleRad *= -1;
-      const speed = getSpeed(PongGame.BALL_SPEED, ball.angleRad);
-      ball.sx = speed.sx;
-      ball.sy = speed.sy;
+      ball.speed = ball.speed.bounce(PongGame.HORIZONTAL_SURFACE);
     }
 
     const player1 = this.state.player1;
     const player2 = this.state.player2;
+    const isCollidingWithP1 = ball.speed.x < 0 && this.isBallColliding(player1);
+    const isCollidingWithP2 = ball.speed.x > 0 && this.isBallColliding(player2);
+
     // collision with racket 1
-    if (this.isBallColliding(player1)) {
-      // const ballCenterY = ball.y + ball.h / 2;
-      // const collidingRatio = 2 * ((ball.y - player1.y) / player1.h - 0.5);
+    if (isCollidingWithP1 || isCollidingWithP2) {
+      const collidingRacket = isCollidingWithP1 ? player1 : player2;
+      const collisionPoint = new Vector2D(
+        ball.x + ball.w / 2,
+        ball.y + ball.h / 2
+      );
+      const backRacket = new Vector2D(
+        ball.x + PongGame.NORMAL_OFFSET * (isCollidingWithP1 ? -1 : 1),
+        collidingRacket.y + collidingRacket.h / 2
+      );
+      const normal = collisionPoint.substract(backRacket);
+      normal.normalize();
 
-      ball.angleRad =
-        ball.angleRad > 0 ? -ball.angleRad + Math.PI : -ball.angleRad - Math.PI;
-      const speed = getSpeed(PongGame.BALL_SPEED, ball.angleRad);
-      ball.sx = speed.sx;
-      ball.sy = speed.sy;
-
-      // collision with racket 2
-    } else if (this.isBallColliding(player2)) {
-      ball.angleRad =
-        ball.angleRad > 0 ? Math.PI - ball.angleRad : -Math.PI - ball.angleRad;
-      const speed = getSpeed(PongGame.BALL_SPEED, ball.angleRad);
-      ball.sx = speed.sx;
-      ball.sy = speed.sy;
+      ball.speed = ball.speed.bounceWithNormal(normal);
 
       // player2 goal
     } else if (ball.x <= MIN_X) {
@@ -190,12 +190,11 @@ export class PongGame {
     const BALL_INITIAL_X = (PongGame.FIELD_WIDTH - ball.w) / 2;
     const BALL_INITIAL_Y = (PongGame.FIELD_HEIGHT - ball.h) / 2;
 
+    const angleRad = random(-Math.PI, Math.PI);
+    const speed = getSpeed(PongGame.BALL_SPEED, angleRad);
     ball.x = BALL_INITIAL_X;
     ball.y = BALL_INITIAL_Y;
-    ball.angleRad = random(-Math.PI, Math.PI);
-    const speed = getSpeed(PongGame.BALL_SPEED, ball.angleRad);
-    ball.sx = speed.sx;
-    ball.sy = speed.sy;
+    ball.speed.set(new Vector2D(speed.sx, speed.sy));
   }
 
   protected isBallColliding(player: PlayerState): boolean {

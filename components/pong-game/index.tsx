@@ -16,6 +16,7 @@ export const PongGame: FC<Props> = () => {
       {renderScore(refs.score1, refs.score2)}
       {renderRackets(refs.racket1, refs.racket2)}
       {renderBall(refs.ball)}
+      {renderDebugInfo(refs.debug)}
     </div>
   );
 };
@@ -63,4 +64,9 @@ function renderRackets(
 
 function renderBall(ballRef: RefObject<HTMLDivElement>): ReactNode {
   return <div className={styles.ball} ref={ballRef} />;
+}
+
+function renderDebugInfo(ref: RefObject<HTMLDivElement>): ReactNode {
+  if (IS_PRODUCTION) return null;
+  return <div className={styles.debug} ref={ref} />;
 }

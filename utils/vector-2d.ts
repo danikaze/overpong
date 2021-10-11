@@ -115,4 +115,13 @@ export class Vector2D {
   public bounceWithNormal(normal: Vector2D): Vector2D {
     return this.substract(normal.scale(2 * this.dotProduct(normal)));
   }
+
+  public clampAngle(min: number, max: number): void {
+    const mod = this.getMod();
+    const currentAngle = Math.atan2(this.y, this.x);
+    const clampedAngle = Math.max(min, Math.min(max, currentAngle));
+    this.x = Math.cos(clampedAngle) * mod;
+    this.y = Math.sin(clampedAngle) * mod;
+    this.normal = undefined;
+  }
 }

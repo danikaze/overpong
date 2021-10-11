@@ -1,3 +1,5 @@
+// tslint:disable:no-magic-numbers
+
 import 'jest';
 import { Vector2D } from '@utils/vector-2d';
 

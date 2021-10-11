@@ -1,4 +1,5 @@
 import { PongGame } from '@utils/pong-game';
+import { PongGameData } from '@utils/pong-game/interfaces';
 import { useEffect, useRef } from 'react';
 
 export function usePongGame() {
@@ -10,6 +11,7 @@ export function usePongGame() {
     score1: useRef<HTMLDivElement>(null),
     score2: useRef<HTMLDivElement>(null),
     ball: useRef<HTMLDivElement>(null),
+    debug: useRef<HTMLDivElement>(null),
   };
 
   useEffect(() => {
@@ -21,7 +23,7 @@ export function usePongGame() {
     const score2 = refs.score2.current!;
     const ball = refs.ball.current!;
 
-    game = new PongGame({
+    const gameOptions: PongGameData = {
       onRacket1Update: (y) => {
         racket1.style.top = `${y}px`;
       },
@@ -36,7 +38,20 @@ export function usePongGame() {
         ball.style.top = `${y}px`;
         ball.style.left = `${x}px`;
       },
-    });
+    };
+
+    if (!IS_PRODUCTION) {
+      gameOptions.onDebugUpdate = (data) => {
+        if (!refs.debug.current) return;
+        refs.debug.current.innerHTML = `<pre>${JSON.stringify(
+          data,
+          null,
+          2
+        )}</pre>`;
+      };
+    }
+
+    game = new PongGame(gameOptions);
 
     return () => {
       game.dispose();
